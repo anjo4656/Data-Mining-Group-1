@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="UTF-8"?><process version="9.10.000">
+  <context>
+    <input/>
+    <output/>
+    <macros/>
+  </context>
+  <operator activated="true" class="process" compatibility="9.10.000" expanded="true" name="Process">
+    <parameter key="logverbosity" value="init"/>
+    <parameter key="random_seed" value="2001"/>
+    <parameter key="send_mail" value="never"/>
+    <parameter key="notification_email" value=""/>
+    <parameter key="process_duration_for_mail" value="30"/>
+    <parameter key="encoding" value="SYSTEM"/>
+    <process expanded="true">
+      <operator activated="true" class="read_csv" compatibility="9.10.000" expanded="true" height="68" name="fb friends" width="90" x="45" y="187">
+        <parameter key="csv_file" value="/home/hipcrip/studier/project/data/fb_friends.csv"/>
+        <parameter key="column_separators" value=","/>
+        <parameter key="trim_lines" value="false"/>
+        <parameter key="use_quotes" value="true"/>
+        <parameter key="quotes_character" value="&quot;"/>
+        <parameter key="escape_character" value="\"/>
+        <parameter key="skip_comments" value="true"/>
+        <parameter key="comment_characters" value="#"/>
+        <parameter key="starting_row" value="1"/>
+        <parameter key="parse_numbers" value="true"/>
+        <parameter key="decimal_character" value="."/>
+        <parameter key="grouped_digits" value="false"/>
+        <parameter key="grouping_character" value=","/>
+        <parameter key="infinity_representation" value=""/>
+        <parameter key="date_format" value=""/>
+        <parameter key="first_row_as_names" value="true"/>
+        <list key="annotations"/>
+        <parameter key="time_zone" value="SYSTEM"/>
+        <parameter key="locale" value="English (United States)"/>
+        <parameter key="encoding" value="UTF-8"/>
+        <parameter key="read_all_values_as_polynominal" value="false"/>
+        <list key="data_set_meta_data_information">
+          <parameter key="0" value="user_a.true.integer.attribute"/>
+          <parameter key="1" value="user_b.true.integer.attribute"/>
+        </list>
+        <parameter key="read_not_matching_values_as_missings" value="false"/>
+      </operator>
+      <operator activated="true" class="multiply" compatibility="9.10.000" expanded="true" height="103" name="Multiply" width="90" x="179" y="187"/>
+      <operator activated="true" class="read_csv" compatibility="9.10.000" expanded="true" height="68" name="gender" width="90" x="45" y="34">
+        <parameter key="csv_file" value="/home/hipcrip/studier/project/data/genders.csv"/>
+        <parameter key="column_separators" value=","/>
+        <parameter key="trim_lines" value="false"/>
+        <parameter key="use_quotes" value="true"/>
+        <parameter key="quotes_character" value="&quot;"/>
+        <parameter key="escape_character" value="\"/>
+        <parameter key="skip_comments" value="true"/>
+        <parameter key="comment_characters" value="#"/>
+        <parameter key="starting_row" value="1"/>
+        <parameter key="parse_numbers" value="true"/>
+        <parameter key="decimal_character" value="."/>
+        <parameter key="grouped_digits" value="false"/>
+        <parameter key="grouping_character" value=","/>
+        <parameter key="infinity_representation" value=""/>
+        <parameter key="date_format" value=""/>
+        <parameter key="first_row_as_names" value="true"/>
+        <list key="annotations"/>
+        <parameter key="time_zone" value="SYSTEM"/>
+        <parameter key="locale" value="English (United States)"/>
+        <parameter key="encoding" value="UTF-8"/>
+        <parameter key="read_all_values_as_polynominal" value="false"/>
+        <list key="data_set_meta_data_information">
+          <parameter key="0" value="user.true.integer.attribute"/>
+          <parameter key="1" value="female.true.integer.attribute"/>
+        </list>
+        <parameter key="read_not_matching_values_as_missings" value="false"/>
+      </operator>
+      <operator activated="true" class="multiply" compatibility="9.10.000" expanded="true" height="103" name="Multiply (2)" width="90" x="179" y="34"/>
+      <operator activated="true" class="python_scripting:execute_python" compatibility="9.10.000" expanded="true" height="124" name="Execute Python" width="90" x="380" y="136">
+        <parameter key="script" value="import pandas&#10;&#10;# rm_main is a mandatory function, &#10;# the number of arguments has to be the number of input ports (can be none),&#10;#     or the number of input ports plus one if &quot;use macros&quot; parameter is set&#10;# if you want to use macros, use this instead and check &quot;use macros&quot; parameter:&#10;#def rm_main(data,macros):&#10;def rm_main(gender, fbFriends):&#10;&#10;    users = gender.shape[0]&#10;&#10;    (friendRows, friendColumns) = fbFriends.shape&#10;&#10;    d = {'user': [], 'friends': []}&#10;    df = pandas.DataFrame(data=d)&#10;    df['friends'] = df['friends'].astype('object')&#10;    &#10;&#10;    currentUser = fbFriends.at[0, 'user_a']&#10;    currentFriends = []&#10;    for edge in range(0, friendRows):&#10;        nextUser = fbFriends.at[edge, 'user_a']&#10;        if nextUser != currentUser:&#10;            df.at[currentUser, 'user'] = currentUser&#10;            df.at[currentUser, 'friends'] = currentFriends #copy?&#10;            currentUser = nextUser&#10;            currentFriends = []&#10;            &#10;        currentFriends.append(fbFriends.at[edge, 'user_b'])&#10;&#10;        if edge == friendRows - 1:&#10;            df.at[currentUser, 'user'] = currentUser&#10;            df.at[currentUser, 'friends'] = currentFriends #copy?&#10;&#10;    return df"/>
+        <parameter key="notebook_cell_tag_filter" value=""/>
+        <parameter key="use_default_python" value="true"/>
+        <parameter key="package_manager" value="conda (anaconda)"/>
+        <parameter key="use_macros" value="false"/>
+      </operator>
+      <connect from_op="fb friends" from_port="output" to_op="Multiply" to_port="input"/>
+      <connect from_op="Multiply" from_port="output 1" to_op="Execute Python" to_port="input 2"/>
+      <connect from_op="Multiply" from_port="output 2" to_port="result 2"/>
+      <connect from_op="gender" from_port="output" to_op="Multiply (2)" to_port="input"/>
+      <connect from_op="Multiply (2)" from_port="output 1" to_op="Execute Python" to_port="input 1"/>
+      <connect from_op="Multiply (2)" from_port="output 2" to_port="result 3"/>
+      <connect from_op="Execute Python" from_port="output 1" to_port="result 1"/>
+      <portSpacing port="source_input 1" spacing="0"/>
+      <portSpacing port="sink_result 1" spacing="0"/>
+      <portSpacing port="sink_result 2" spacing="0"/>
+      <portSpacing port="sink_result 3" spacing="0"/>
+      <portSpacing port="sink_result 4" spacing="0"/>
+    </process>
+  </operator>
+</process>
