@@ -5,6 +5,7 @@ import pandas
 # kind of connection, the edge has the following attributes:
 # ['user_a', 'user_b', 'fb', 'bt', 'sms', 'calls', 'weight']
 #  - fb: 1 if user a and b are facebook friends, 0 otherwise
+#  - sms: The number of sms sent between user a and b
 #  
 # TODO: CALCULATE THE REMAINING ATTRIBUTES
 def rm_main(fbFriends, gender, bt, sms, calls):
@@ -19,12 +20,29 @@ def rm_main(fbFriends, gender, bt, sms, calls):
         edges.append(userEdges)
 
     fbEdges(fbFriends, edges)
+    smsEdges(sms, edges)
     
     df = edges[0]
     for i in range(1, maxID):
         df = df.append(edges[i], ignore_index=True)
 
     return df
+
+
+# Processes the sms data. For every message between user a and b,
+# no matter who is the sender and recipient, the edge between user 
+# a and b will get +1 in the 'sms' column
+def smsEdges(sms, edges):
+    for row in range(0, sms.shape[0]):
+        sender = sms.at[row, 'sender']
+        recipient = sms.at[row, 'recipient']
+
+        if (sender == recipient):
+            continue
+
+        lesser = min(sender, recipient)
+        greater = max(sender, recipient)
+        addEdge(edges, lesser, greater, 'sms', 1)    
 
     
 # Processes the Facebook friendships. There is a friendship
