@@ -24,9 +24,18 @@ def rm_main(fbFriends, gender, bt, sms, calls):
     callsEdges(calls, edges)
     btEdges(bt, edges)
     
+    
     df = edges[0]
     for i in range(1, maxID):
         df = df.append(edges[i], ignore_index=True)
+
+    df.at[0, 'bt'] = 1    
+    #df=(df-df.min())/(df.max()-df.min())
+
+    for feature_name in ['fb', 'bt', 'sms', 'calls']:
+        max_value = df[feature_name].max()
+        min_value = df[feature_name].min()
+        df[feature_name] = (df[feature_name] - min_value) / (max_value - min_value)
 
     return df
 
