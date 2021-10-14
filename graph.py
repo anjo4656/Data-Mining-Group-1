@@ -26,10 +26,11 @@ def rm_main(df):
     m = nx_comm.modularity(G, result, weight='weight', resolution=1)
     print(m)
 
-    df = weight(df, 0.1, 2, 2, 1)
+    df = weight(df, 1, 1, 10000, 10000)
     G=networkx.from_pandas_edgelist(df=df, source='user_a', target='user_b', edge_attr='weight')
     result = greedy_modularity_communities(G, weight='weight')
     m = nx_comm.modularity(G, result, weight='weight', resolution=1)
+    print(len(list(result)))
     print(m)
     
     
@@ -39,6 +40,11 @@ def rm_main(df):
             d[node] = cluster
 
     networkx.set_node_attributes(G, d, "cluster")
+    for (u, v) in G.edges:
+    	if G.nodes[u]['cluster'] != G.nodes[v]['cluster']:
+    		G.remove_edge(u, v)
+    	
+    
     networkx.write_graphml(G, "G.graphml")
     return df
 
